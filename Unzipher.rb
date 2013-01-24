@@ -24,6 +24,9 @@
 module Unzipher
   attr_accessor :verbose
 
+  BAD_CHARACTER_RETRIES = 20
+  BAD_RESULT_RETRIES = 10
+
   # Implement an ord() function that works in both Ruby 1.8 and Ruby 1.9
   def Unzipher.ord(c)
     if(c.is_a?(Fixnum))
@@ -109,7 +112,6 @@ module Unzipher
   # get a "\x01" byte at the end of your string if you set has_padding = false
   # when it is a block cipher.
   def Unzipher.decrypt(mod, prefix, postfix, verbose = false)
-
     # Make sure the compression is actually working as expected
     a = mod.encrypt(get_random_string(prefix.length - 1))
     b = mod.encrypt(prefix)
@@ -121,41 +123,43 @@ module Unzipher
     end
 
     character_set = (mod.character_set + postfix).chars.sort.uniq
-    #puts("character_set = #{character_set.inspect}")
 
-    failures = 0
+    result_failures = 0 # Goes up to BAD_RESULT_RETRIES
     result = ''
-    loop do
-      possible_characters = {}
+    begin
+      possible_characters = character_set.clone
 
+      character_failures = 0 # Goes up to BAD_CHARACTER_RETRIES
       loop do
         c = do_character(mod, prefix + result, character_set)
+        possible_characters &= c
 
-        if(c.length == 1)
-          c = c[0]
-          result += c
-          #sleep(0.01)
+        if(possible_characters.length == 1)
+          result += possible_characters[0]
           break
         else
-          #puts("Failed; got #{c.length} possible results")
+          character_failures += 1
+          if(character_failures > BAD_CHARACTER_RETRIES)
+            break
+          end
         end
       end
 
-      failures += 1
-
-      if(failures > 100)
-        failures = 0
-        puts("resetting...")
+      # If we failed to narrow down the character
+      if(possible_characters.length != 1)
+        result_failures += 1 
+        if(result_failures < BAD_RESULT_RETRIES)
+          puts("False positive; resetting (attempt #{result_failures} of #{BAD_RESULT_RETRIES})...")
+        end
         result = ""
+      else
+        if(result =~ /#{postfix}$/)
+          break
+        end
       end
-      #puts(result)
-      if(result =~ /#{postfix}$/)
-        break
-      end
-    end
+    end while(result_failures <= BAD_RESULT_RETRIES)
 
     result = result.gsub(/#{postfix}$/, '')
-    puts("Final result: #{result}")
 
     return result
   end

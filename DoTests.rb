@@ -32,79 +32,49 @@ end
 passes = 0
 failures = 0
 
-1.upto(10000) do
+puts("*** [RC4] Testing 16-digit hex strings...")
+1.upto(200) do
+  mod = LocalTestModule.new("rc4", "abcdef0123456789", 16)
+  data = Unzipher.decrypt(mod, "Cookie: SESSION_ID=\"", '"')
+
+  if(data == mod.data)
+    passes += 1
+    puts("PASS: #{mod.data} == #{data}")
+  else
+    failures += 1
+    puts("FAIL: #{mod.data} != #{data}")
+  end
+end
+
+puts("*** [RC4] Testing 32-digit hex strings...")
+1.upto(200) do
   mod = LocalTestModule.new("rc4", "abcdef0123456789", 32)
   data = Unzipher.decrypt(mod, "Cookie: SESSION_ID=\"", '"')
 
   if(data == mod.data)
     passes += 1
-    puts("PASS")
+    puts("PASS: #{mod.data} == #{data}")
   else
     failures += 1
-    puts("FAIL")
+    puts("FAIL: #{mod.data} != #{data}")
+  end
+end
+
+puts("*** [RC4] Testing 25-byte base64 strings (128-bits, encoded)")
+1.upto(200) do
+  mod = LocalTestModule.new("rc4", "+/0123456789=ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz", 32)
+  data = Unzipher.decrypt(mod, "Cookie: SESSION_ID=\"", '"')
+
+  if(data == mod.data)
+    passes += 1
+    puts("PASS: #{mod.data} == #{data}")
+  else
+    failures += 1
+    puts("FAIL: #{mod.data} != #{data}")
   end
 end
 
 puts("Passes: #{passes}")
 puts("Failures: #{failures}")
-
-#0.upto(TEST_COUNT) do |i|
-#  data = "abcdefghijklmnop"
-#  cipher = ciphers.shuffle[0]
-#  print("> #{cipher} with a prefix of #{i/2} bytes... ")
-#
-#  mod = LocalTestModule.new(cipher, data, nil, false, i/2)
-#  d = Unzipher.decrypt(mod, has_padding(cipher), false)
-#  if(d == data)
-#    passes += 1
-#    puts "Passed!"
-#  else
-#    failures += 1
-#    puts "Failed!"
-#    puts(mod.to_s)
-#    exit
-#  end
-#end
-#
-## Do a bunch of very short strings
-#(0..TEST_COUNT).to_a.each do |i|
-#  data = (0..rand(100)).map{rand(255).chr}.join
-#  cipher = ciphers.shuffle[0]
-#  print("> #{cipher} with random short data... ")
-#  mod = LocalTestModule.new(cipher, data, nil, false)
-#  d = Unzipher.decrypt(mod, has_padding(cipher), false)
-#  if(d == data)
-#    passes += 1
-#    puts "Passed!"
-#  else
-#    failures += 1
-#    puts "Failed!"
-#    puts(mod.to_s)
-#    exit
-#  end
-#end
-#
-## Try the different ciphers
-#ciphers.each do |cipher|
-#  (0..TEST_COUNT).to_a.shuffle[0, 8].each do |i|
-#    print("> #{cipher} with random data (#{i} bytes)... ")
-#
-#    data = (0..i).map{(rand(0x7E - 0x20) + 0x20).chr}.join
-#    mod = LocalTestModule.new(cipher, data)
-#    d = Unzipher.decrypt(mod, has_padding(cipher), false)
-#    if(d == data)
-#      passes += 1
-#      puts "Passed!"
-#    else
-#      failures += 1
-#      puts "Failed!"
-#      puts(mod.to_s)
-#    end
-#  end
-#end
-#
-#puts("Ciphers tested: #{ciphers.join(", ")}")
-#puts("Tests passed: #{passes}")
-#puts("Tests failed: #{failures}")
-#
+puts("Accuracy: #{passes.to_f / (passes.to_f + failures.to_f)}")
 
