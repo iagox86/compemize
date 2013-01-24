@@ -77,12 +77,16 @@ module Unzipher
     end
   end
 
-  def Unzipher.do_character(mod, prefix, postfix, character_set)
+  def Unzipher.do_character(mod, prefix, character_set)
     min_length = nil
     min = []
 
+    random_set = (128..255).map do |i| i.chr end
+    random_prefix  = (10..rand(100)).map{random_set[rand(random_set.size)]}.join
+    random_postfix = (10..rand(100)).map{random_set[rand(random_set.size)]}.join
+
     character_set.each do |c|
-      len = mod.encrypt(prefix + c + postfix)
+      len = mod.encrypt(random_prefix + prefix + c + random_postfix)
       if(min_length.nil? || len == min_length)
          min << c
          min_length = len
@@ -125,12 +129,7 @@ module Unzipher
       possible_characters = {}
 
       loop do
-
-        set = (128..255).map do |i| i.chr end
-
-        rand1 = (10..rand(100)).map{set[rand(set.size)]}.join
-        rand2 = (10..rand(100)).map{set[rand(set.size)]}.join
-        c = do_character(mod, rand1 + prefix + result, rand2, character_set)
+        c = do_character(mod, prefix + result, character_set)
 
         if(c.length == 1)
           c = c[0]
