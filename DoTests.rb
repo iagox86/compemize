@@ -74,6 +74,34 @@ puts("*** [RC4] Testing 25-byte base64 strings (128-bits, encoded)")
   end
 end
 
+puts("*** [DES-CBC] Testing 16-digit hex strings...")
+1.upto(200) do
+  mod = LocalTestModule.new("des-cbc", "abcdef0123456789", 16)
+  data = Unzipher.decrypt(mod, "Cookie: SESSION_ID=\"", '"')
+
+  if(data == mod.data)
+    passes += 1
+    puts("PASS: #{mod.data} == #{data}")
+  else
+    failures += 1
+    puts("FAIL: #{mod.data} != #{data}")
+  end
+end
+
+puts("*** [AES-256-CBC] Testing 16-digit hex strings...")
+1.upto(200) do
+  mod = LocalTestModule.new("aes-256-cbc", "abcdef0123456789", 16)
+  data = Unzipher.decrypt(mod, "Cookie: SESSION_ID=\"", '"')
+
+  if(data == mod.data)
+    passes += 1
+    puts("PASS: #{mod.data} == #{data}")
+  else
+    failures += 1
+    puts("FAIL: #{mod.data} != #{data}")
+  end
+end
+
 puts("Passes: #{passes}")
 puts("Failures: #{failures}")
 puts("Accuracy: #{passes.to_f / (passes.to_f + failures.to_f)}")

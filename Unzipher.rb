@@ -24,8 +24,13 @@
 module Unzipher
   attr_accessor :verbose
 
-  BAD_CHARACTER_RETRIES = 20
-  BAD_RESULT_RETRIES = 10
+  # The higher this is, the slower it gets with only minimal accuracy gains.
+  # Too low, and it gives up too quickly. 40 works well.
+  BAD_CHARACTER_RETRIES = 40
+
+  # Too low, and this will fail on unreliable ciphers (like block ciphers). Too high, and the program will run
+  # increasingly slowly and unreliably.
+  BAD_RESULT_RETRIES = 40
 
   # Implement an ord() function that works in both Ruby 1.8 and Ruby 1.9
   def Unzipher.ord(c)
@@ -149,7 +154,7 @@ module Unzipher
       if(possible_characters.length != 1)
         result_failures += 1 
         if(result_failures < BAD_RESULT_RETRIES)
-          puts("False positive; resetting (attempt #{result_failures} of #{BAD_RESULT_RETRIES})...")
+          puts("False positive; resetting (attempt #{result_failures+1} of #{BAD_RESULT_RETRIES})...")
         end
         result = ""
       else
